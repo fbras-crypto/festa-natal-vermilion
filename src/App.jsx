@@ -624,7 +624,7 @@ function ChipStack({ count, color }) {
 }
 
 // Carta de jogar como no Figma: branca, filete vermelho interior, coroas no topo e no fundo
-function PlayingCard({ rank, suit, suitColor = '#C9363A', className, children }) {
+function PlayingCard({ rank, suit, suitColor = '#C9363A', crowns = true, className, children }) {
   const Index = ({ flip }) => (
     <div
       className={cx('pointer-events-none absolute flex flex-col items-center font-display leading-none', flip ? 'bottom-3 right-3 rotate-180' : 'left-3 top-3')}
@@ -637,8 +637,8 @@ function PlayingCard({ rank, suit, suitColor = '#C9363A', className, children })
   return (
     <div className={cx('relative rounded-2xl bg-ivory-light p-4 text-ink', className)} style={{ boxShadow: '0 0 0 2px #AEAEAE, 0 10px 24px rgba(30,20,20,.5)' }}>
       <span className="card-inner-line" />
-      <CardCrown className="pointer-events-none absolute left-1/2 top-2.5 -translate-x-1/2" size={18} />
-      <CardCrown className="pointer-events-none absolute bottom-2.5 left-1/2 -translate-x-1/2" size={18} flip />
+      {crowns && <CardCrown className="pointer-events-none absolute left-1/2 top-2.5 -translate-x-1/2" size={18} />}
+      {crowns && <CardCrown className="pointer-events-none absolute bottom-2.5 left-1/2 -translate-x-1/2" size={18} flip />}
       <Index />
       <Index flip />
       {children}
@@ -878,6 +878,7 @@ function TeamBuildingView({ teams }) {
                 key={t.id}
                 rank={t.emblema}
                 suit=""
+                crowns={false}
                 suitColor={t.cor}
                 className={cx('flex flex-col items-center py-6 text-center', i === EVENT_DATA.equipas.length - 1 && EVENT_DATA.equipas.length % 2 === 1 && 'col-span-2')}
               >
