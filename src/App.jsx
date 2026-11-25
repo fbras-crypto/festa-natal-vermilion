@@ -27,19 +27,29 @@ import {
   writeBatch,
   increment,
   serverTimestamp,
+  query,
+  orderBy,
+  limit,
+  addDoc,
+  updateDoc,
 } from 'firebase/firestore';
 import {
   AlertTriangle,
   CalendarDays,
+  Camera,
   Car,
   Check,
+  ChevronLeft,
   ChevronRight,
   Clock,
   Coffee,
   Crown,
   Eye,
   EyeOff,
+  FolderOpen,
   Gift,
+  ImagePlus,
+  Images,
   Lock,
   MapPin,
   Medal,
@@ -54,6 +64,7 @@ import {
   Sparkles,
   Swords,
   Trophy,
+  Upload,
   UtensilsCrossed,
   Vote,
   Wifi,
@@ -77,6 +88,13 @@ const FIREBASE_CONFIG = {
 /* PIN do painel de organização. Atenção: fica visível no código da página,
  * por isso serve para evitar cliques acidentais, não como segurança forte. */
 const ADMIN_PIN = '2026';
+
+/* GALERIA — as fotos originais seguem para um cenário do Make (pasta "Marketing"),
+ * que as guarda no Google Drive. Uma versão leve fica no Firestore para a galeria
+ * aparecer logo em todos os telemóveis. Deixa o webhook vazio para não enviar para o Drive. */
+const PHOTO_UPLOAD_WEBHOOK = 'https://hook.eu2.make.com/bolfoudoljv9l4c9jsgmqvgduzg28hf0';
+const DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/1Xx_Y8DC07OPXybn-K2iQVU4wAVB-ZKnC';
+const GALLERY_MAX_FILES = 10; // fotos por envio
 
 /* ----------------------------------------------------------------------------
  *  2) DADOS DO EVENTO — edita tudo aqui (horários, provas, ementa, equipas,
@@ -387,6 +405,16 @@ function createLiveBackend() {
 
     updateSettings: (patch) => setDoc(doc(db, 'settings', 'event'), patch, { merge: true }),
 
+    // Galeria: últimas 150 fotos, mais recentes primeiro
+    subscribePhotos: (cb, onErr) =>
+      onSnapshot(
+        query(collection(db, 'photos'), orderBy('createdAt', 'desc'), limit(150)),
+        (s) => cb(s.docs.map((d) => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }))),
+        onErr
+      ),
+    addPhoto: (photo) => addDoc(collection(db, 'photos'), { ...photo, hidden: false, createdAt: serverTimestamp() }),
+    setPhotoHidden: (id, hidden) => updateDoc(doc(db, 'photos', id), { hidden }),
+
     resetScores: () => {
       const b = writeBatch(db);
       EVENT_DATA.equipas.forEach((t) => b.set(doc(db, 'teams', t.id), { score: 0, updatedAt: serverTimestamp() }, { merge: true }));
@@ -408,11 +436,13 @@ function createDemoBackend() {
     votes: { ...EVENT_DATA.demo.votos },
     settings: { ...DEFAULT_SETTINGS, ...EVENT_DATA.demo.definicoes },
   };
-  const listeners = { teams: new Set(), votes: new Set(), settings: new Set() };
-  const emit = (k) => listeners[k].forEach((cb) => cb({ ...state[k] }));
+  state.photos = [];
+  const listeners = { teams: new Set(), votes: new Set(), settings: new Set(), photos: new Set() };
+  const copy = (k) => (Array.isArray(state[k]) ? [...state[k]] : { ...state[k] });
+  const emit = (k) => listeners[k].forEach((cb) => cb(copy(k)));
   const subscribe = (k) => (cb) => {
     listeners[k].add(cb);
-    cb({ ...state[k] });
+    cb(copy(k));
     return () => listeners[k].delete(cb);
   };
   const delay = () => new Promise((r) => setTimeout(r, 150));
@@ -420,6 +450,17 @@ function createDemoBackend() {
     subscribeTeams: subscribe('teams'),
     subscribeVotes: subscribe('votes'),
     subscribeSettings: subscribe('settings'),
+    subscribePhotos: subscribe('photos'),
+    addPhoto: async (photo) => {
+      await delay();
+      state.photos = [{ ...photo, id: `demo-${Date.now()}-${Math.random()}`, hidden: false, createdAt: new Date() }, ...state.photos];
+      emit('photos');
+    },
+    setPhotoHidden: async (id, hidden) => {
+      await delay();
+      state.photos = state.photos.map((p) => (p.id === id ? { ...p, hidden } : p));
+      emit('photos');
+    },
     addPoints: async (id, delta) => { await delay(); state.teams[id] = (state.teams[id] || 0) + delta; emit('teams'); },
     setPoints: async (id, value) => { await delay(); state.teams[id] = value; emit('teams'); },
     castVote: async ({ misterId, missId }) => {
@@ -448,6 +489,7 @@ function useLiveEvent() {
   const [votes, setVotes] = useState({});
   const [settings, setSettings] = useState(null);
   const [error, setError] = useState(null);
+  const [photos, setPhotos] = useState([]);
 
   useEffect(() => {
     const onErr = (err) => {
@@ -459,11 +501,12 @@ function useLiveEvent() {
       backend.subscribeTeams(ok(setTeams), onErr),
       backend.subscribeVotes(ok(setVotes), onErr),
       backend.subscribeSettings(ok(setSettings), onErr),
+      backend.subscribePhotos(setPhotos, (err) => console.error('[Firestore] galeria', err)),
     ];
     return () => unsubs.forEach((u) => typeof u === 'function' && u());
   }, []);
 
-  return { teams, votes, settings: settings || DEFAULT_SETTINGS, ready: settings !== null, error };
+  return { teams, votes, photos, settings: settings || DEFAULT_SETTINGS, ready: settings !== null, error };
 }
 
 /* ---------- Controlo anti-voto duplicado (localStorage do dispositivo) ---------- */
@@ -1180,7 +1223,209 @@ function MisterMissView({ votes, settings, ready, notify }) {
   );
 }
 
-/* --------------------------- 5. INFO / LOCAL --------------------------- */
+/* ----------------------------- 5. GALERIA ----------------------------- */
+
+// Lê uma imagem escolhida no telemóvel (respeita a orientação da câmara)
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => resolve({ img, url });
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Formato de imagem não suportado')); };
+    img.src = url;
+  });
+}
+
+// Redimensiona para JPEG (maxSide em píxeis). Devolve um Blob.
+function resizeToBlob(img, maxSide, quality) {
+  const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+  const w = Math.round(img.naturalWidth * scale);
+  const h = Math.round(img.naturalHeight * scale);
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+  return new Promise((resolve) => canvas.toBlob((b) => resolve({ blob: b, w, h }), 'image/jpeg', quality));
+}
+
+const blobToDataUrl = (blob) =>
+  new Promise((resolve) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.readAsDataURL(blob);
+  });
+
+// Prepara uma foto: versão leve para a galeria + versão de alta qualidade para o Drive
+async function preparePhoto(file) {
+  const { img, url } = await loadImage(file);
+  try {
+    // Miniatura para a galeria (cabe num documento do Firestore)
+    let thumb = null;
+    for (const [side, q] of [[1080, 0.72], [900, 0.65], [720, 0.6]]) {
+      const r = await resizeToBlob(img, side, q);
+      const dataUrl = await blobToDataUrl(r.blob);
+      thumb = { dataUrl, w: r.w, h: r.h };
+      if (dataUrl.length < 850000) break;
+    }
+    // Original para o Drive: mantém o ficheiro se for JPEG/PNG até 4,5 MB; senão converte em JPEG de alta qualidade
+    let original = file;
+    if (!/^image\/(jpeg|png)$/.test(file.type) || file.size > 4.5 * 1024 * 1024) {
+      const r = await resizeToBlob(img, 3200, 0.9);
+      original = r.blob;
+    }
+    return { thumb, original };
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function sendToDrive({ original, author, fileName }) {
+  if (!PHOTO_UPLOAD_WEBHOOK) return Promise.resolve();
+  const fd = new FormData();
+  fd.append('file', original, fileName);
+  fd.append('author', author || 'Anónimo');
+  fd.append('fileName', fileName);
+  // 'no-cors' — o envio é feito, mesmo sem lermos a resposta do Make
+  return fetch(PHOTO_UPLOAD_WEBHOOK, { method: 'POST', body: fd, mode: 'no-cors' });
+}
+
+const formatPhotoTime = (ts) => {
+  const d = ts?.toDate ? ts.toDate() : ts instanceof Date ? ts : null;
+  return d ? d.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }) : 'agora';
+};
+
+function Lightbox({ photos, index, onClose, onNav }) {
+  const p = photos[index];
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft') onNav(-1);
+      if (e.key === 'ArrowRight') onNav(1);
+    };
+    window.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
+  }, [onClose, onNav]);
+  if (!p) return null;
+  return (
+    <div className="fixed inset-0 z-[55] flex flex-col bg-black" onClick={onClose}>
+      <div className="pt-safe flex items-center justify-between px-4 py-3 text-sm">
+        <span className="text-white/70">
+          {p.author || 'Anónimo'} · {formatPhotoTime(p.createdAt)}
+        </span>
+        <button aria-label="Fechar" className="rounded-full bg-white/10 p-2"><X size={18} /></button>
+      </div>
+      <div className="relative flex flex-1 items-center justify-center px-2" onClick={(e) => e.stopPropagation()}>
+        <img src={p.img} alt={`Foto de ${p.author || 'convidado'}`} className="max-h-[78vh] max-w-full rounded-lg object-contain" />
+        {photos.length > 1 && (
+          <>
+            <button onClick={() => onNav(-1)} aria-label="Anterior" className="absolute left-2 rounded-full bg-black/50 p-2"><ChevronLeft /></button>
+            <button onClick={() => onNav(1)} aria-label="Seguinte" className="absolute right-2 rounded-full bg-black/50 p-2"><ChevronRight /></button>
+          </>
+        )}
+      </div>
+      <p className="pb-safe py-4 text-center text-xs text-white/40">{index + 1} / {photos.length}</p>
+    </div>
+  );
+}
+
+function GalleryView({ photos, notify }) {
+  const visible = photos.filter((p) => !p.hidden && p.img);
+  const [author, setAuthor] = useState(() => safeStorage.get(`${LS_PREFIX}-nome`) || '');
+  const [progress, setProgress] = useState(null); // { done, total }
+  const [open, setOpen] = useState(-1);
+  const inputRef = useRef(null);
+
+  const nav = useCallback((d) => setOpen((i) => (i + d + visible.length) % visible.length), [visible.length]);
+  const close = useCallback(() => setOpen(-1), []);
+
+  const onFiles = async (e) => {
+    const files = [...(e.target.files || [])].filter((f) => f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name));
+    e.target.value = '';
+    if (!files.length) return;
+    if (files.length > GALLERY_MAX_FILES) notify(`Máximo ${GALLERY_MAX_FILES} fotos de cada vez — vou enviar as primeiras ${GALLERY_MAX_FILES}.`);
+    const batch = files.slice(0, GALLERY_MAX_FILES);
+    const name = author.trim().slice(0, 40);
+    safeStorage.set(`${LS_PREFIX}-nome`, name);
+    setProgress({ done: 0, total: batch.length });
+    let ok = 0;
+    for (const [i, file] of batch.entries()) {
+      try {
+        const { thumb, original } = await preparePhoto(file);
+        const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const safeName = (name || 'convidado').normalize('NFD').replace(/[^\w-]+/g, '_');
+        const fileName = `festa-natal-2026_${stamp}_${safeName}_${i + 1}.jpg`;
+        await backend.addPhoto({ img: thumb.dataUrl, w: thumb.w, h: thumb.h, author: name || 'Anónimo' });
+        sendToDrive({ original, author: name, fileName }).catch((err) => console.error('[Drive]', err));
+        ok += 1;
+      } catch (err) {
+        console.error(err);
+      }
+      setProgress({ done: i + 1, total: batch.length });
+    }
+    setProgress(null);
+    notify(ok === batch.length ? (ok === 1 ? 'Foto partilhada! 📸' : `${ok} fotos partilhadas! 📸`) : `Enviadas ${ok} de ${batch.length}. Tenta novamente as restantes.`, ok ? 'ok' : 'error');
+  };
+
+  return (
+    <div className="animate-fade-up">
+      <div className="mb-4 mt-2 flex items-start justify-between gap-3">
+        <SectionTitle eyebrow="Memórias da noite" title="Galeria" subtitle="Partilha as tuas fotos da festa — ficam visíveis para todos e guardadas pela organização." />
+        <div className="-mt-1 shrink-0"><Lantern size={34} string={4} char="喜" /></div>
+      </div>
+
+      <Card className="mb-5 ring-gold/25">
+        <label className="text-xs font-semibold uppercase tracking-wider text-white/50" htmlFor="gallery-author">O teu nome (opcional)</label>
+        <input
+          id="gallery-author"
+          value={author}
+          maxLength={40}
+          onChange={(e) => setAuthor(e.target.value)}
+          placeholder="Ex.: Ana Ribeiro"
+          className="mt-1.5 w-full rounded-xl bg-ink px-3 py-2.5 text-sm outline-none ring-1 ring-white/10 focus:ring-gold"
+        />
+        <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={onFiles} />
+        <button
+          onClick={() => inputRef.current?.click()}
+          disabled={!!progress}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-vermilion py-3.5 font-bold shadow-lg shadow-vermilion/30 transition active:scale-[0.98] disabled:opacity-60"
+        >
+          {progress ? <Upload size={20} className="animate-bounce" /> : <ImagePlus size={20} />}
+          {progress ? `A enviar ${Math.min(progress.done + 1, progress.total)} de ${progress.total}…` : 'Adicionar fotos'}
+        </button>
+        {progress && (
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div className="h-full rounded-full bg-gold transition-all" style={{ width: `${(progress.done / progress.total) * 100}%` }} />
+          </div>
+        )}
+        <p className="mt-2 text-center text-[11px] text-white/40">Até {GALLERY_MAX_FILES} fotos de cada vez. Mantém a app aberta até terminar.</p>
+      </Card>
+
+      {visible.length === 0 ? (
+        <Card className="py-10 text-center">
+          <Camera size={34} className="mx-auto text-gold" />
+          <h3 className="mt-3 font-display text-xl font-bold">Ainda não há fotos</h3>
+          <p className="mt-1 text-sm text-white/60">Sê o primeiro a partilhar um momento da noite!</p>
+        </Card>
+      ) : (
+        <>
+          <p className="mb-2 flex items-center gap-1.5 text-xs text-white/50"><Images size={14} /> {visible.length} {visible.length === 1 ? 'foto' : 'fotos'}</p>
+          <div className="grid grid-cols-3 gap-1.5">
+            {visible.map((p, i) => (
+              <button key={p.id} onClick={() => setOpen(i)} className="group relative aspect-square overflow-hidden rounded-lg ring-1 ring-white/10">
+                <img src={p.img} alt={`Foto de ${p.author || 'convidado'}`} loading="lazy" className="h-full w-full object-cover transition group-active:scale-95" />
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {open > -1 && <Lightbox photos={visible} index={open} onClose={close} onNav={nav} />}
+    </div>
+  );
+}
+
+/* --------------------------- 6. INFO / LOCAL --------------------------- */
 function InfoView() {
   const digits = (tel) => tel.replace(/[^\d]/g, '');
   return (
@@ -1313,7 +1558,7 @@ function TeamPointsRow({ team, score, notify }) {
   );
 }
 
-function AdminPanel({ open, onClose, teams, votes, settings, notify }) {
+function AdminPanel({ open, onClose, teams, votes, photos, settings, notify }) {
   const [unlocked, setUnlocked] = useState(false);
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState(false);
@@ -1402,6 +1647,29 @@ function AdminPanel({ open, onClose, teams, votes, settings, notify }) {
             ))}
           </section>
 
+          {/* Galeria */}
+          <section className="space-y-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-white/50">Galeria ({photos.length} fotos)</h3>
+            <a href={DRIVE_FOLDER_URL} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-sm font-semibold text-ink">
+              <FolderOpen size={16} /> Abrir pasta das fotos no Drive
+            </a>
+            {photos.length > 0 && <p className="text-xs text-white/50">Toca numa foto para a esconder ou voltar a mostrar na galeria pública.</p>}
+            <div className="grid grid-cols-4 gap-1.5">
+              {photos.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={async () => {
+                    try { await backend.setPhotoHidden(p.id, !p.hidden); notify(p.hidden ? 'Foto visível' : 'Foto escondida'); } catch (e) { console.error(e); notify('Erro ao atualizar foto.', 'error'); }
+                  }}
+                  className="relative aspect-square overflow-hidden rounded-md ring-1 ring-white/10"
+                >
+                  <img src={p.img} alt="" className={cx('h-full w-full object-cover', p.hidden && 'opacity-25 grayscale')} />
+                  {p.hidden && <EyeOff size={18} className="absolute inset-0 m-auto text-red-300" />}
+                </button>
+              ))}
+            </div>
+          </section>
+
           {/* Reset de emergência */}
           <section className="space-y-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-red-300/80">Reset de emergência</h3>
@@ -1424,14 +1692,15 @@ function AdminPanel({ open, onClose, teams, votes, settings, notify }) {
  * ========================================================================== */
 const NAV = [
   { id: 'agenda', label: 'Agenda', icon: CalendarDays },
-  { id: 'team', label: 'Team Building', icon: Trophy },
+  { id: 'team', label: 'Team', icon: Trophy },
   { id: 'jantar', label: 'Jantar', icon: UtensilsCrossed },
   { id: 'mm', label: 'Mister & Miss', icon: Crown },
+  { id: 'galeria', label: 'Galeria', icon: Camera },
   { id: 'info', label: 'Info', icon: MapPin },
 ];
 
 export default function App() {
-  const { teams, votes, settings, ready, error } = useLiveEvent();
+  const { teams, votes, photos, settings, ready, error } = useLiveEvent();
   const [tab, setTab] = useState('agenda');
   const [adminOpen, setAdminOpen] = useState(false);
   const [toast, setToast] = useState(null);
@@ -1498,12 +1767,13 @@ export default function App() {
         {tab === 'team' && <TeamBuildingView teams={teams} />}
         {tab === 'jantar' && <JantarView />}
         {tab === 'mm' && <MisterMissView votes={votes} settings={settings} ready={ready} notify={notify} />}
+        {tab === 'galeria' && <GalleryView photos={photos} notify={notify} />}
         {tab === 'info' && <InfoView />}
       </main>
 
       {/* Navegação inferior fixa */}
       <nav className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-gold/25 bg-ink/95 backdrop-blur">
-        <div className="mx-auto grid h-[72px] max-w-md grid-cols-5">
+        <div className="mx-auto grid h-[72px] max-w-md grid-cols-6">
           {NAV.map(({ id, label, icon: Icon }) => {
             const active = tab === id;
             return (
@@ -1527,7 +1797,7 @@ export default function App() {
         </div>
       )}
 
-      <AdminPanel open={adminOpen} onClose={() => setAdminOpen(false)} teams={teams} votes={votes} settings={settings} notify={notify} />
+      <AdminPanel open={adminOpen} onClose={() => setAdminOpen(false)} teams={teams} votes={votes} photos={photos} settings={settings} notify={notify} />
     </div>
   );
 }
