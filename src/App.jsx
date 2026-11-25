@@ -35,6 +35,7 @@ import {
   Check,
   ChevronRight,
   Clock,
+  Coffee,
   Crown,
   Eye,
   EyeOff,
@@ -43,6 +44,9 @@ import {
   MapPin,
   Medal,
   MessageCircle,
+  Mic,
+  Moon,
+  Music,
   Navigation,
   Phone,
   RotateCcw,
@@ -91,48 +95,63 @@ const EVENT_DATA = {
   },
 
   // Agenda do dia — por ordem cronológica. "local" é texto livre.
+  // Horas depois da meia-noite (ex.: 00:30) contam como parte da mesma noite.
   agenda: [
     {
-      hora: '15:00',
-      titulo: 'Receção & Boas-vindas',
-      descricao: 'Check-in, entrega de pulseiras e formação das equipas. Há café e bolo-rei!',
-      local: 'Entrada principal — Espaço Team Building',
+      hora: '14:00',
+      titulo: 'Receção',
+      descricao: 'Chegada, check-in e boas-vindas a todos os colaboradores.',
+      local: 'Teatro da Luz',
       icone: 'gift',
     },
     {
-      hora: '15:30',
-      titulo: 'Início do Team Building',
-      descricao: 'Abertura do Casino Vermilion: briefing das provas e arranque dos desafios.',
-      local: 'Jardim & Salas de jogo',
+      hora: '14:30',
+      titulo: 'Kick Off',
+      descricao: '14:30 Direção · 15:00 BU Mobilidade Internacional · 15:30 BU OPLS · 16:00 BU Vermilion Intelligent',
+      local: 'Teatro da Luz',
+      icone: 'mic',
+    },
+    {
+      hora: '16:30',
+      titulo: 'Coffee Break',
+      descricao: 'Pausa para um café e dois dedos de conversa antes do Team Building.',
+      local: 'Teatro da Luz',
+      icone: 'coffee',
+    },
+    {
+      hora: '17:00',
+      titulo: 'Team Building',
+      descricao: 'Das 17:00 às 18:00 — abre o Casino Vermilion! Consulta as equipas e as provas no separador "Team Building".',
+      local: 'Teatro da Luz',
       icone: 'swords',
     },
     {
-      hora: '17:30',
-      titulo: 'Pausa & Check-in',
-      descricao: 'Pausa para descansar, refrescar e fazer check-in no espaço do jantar.',
-      local: 'Lounge',
-      icone: 'clock',
-    },
-    {
-      hora: '19:30',
-      titulo: 'Jantar de Natal',
-      descricao: 'Jantar sentado com a ementa de Natal. Consulta a ementa no separador "Jantar".',
-      local: 'Salão Nobre — Espaço Jantar',
-      icone: 'dinner',
-    },
-    {
-      hora: '21:30',
-      titulo: 'Gala & Votação Mister e Miss',
-      descricao: 'Desfile dos candidatos, entrega de prémios do Team Building e votação ao vivo.',
-      local: 'Palco — Salão Nobre',
+      hora: '18:30',
+      titulo: 'Concurso Mister & Miss Vermilion',
+      descricao: 'Desfile dos candidatos e votação ao vivo na app, no separador "Mister & Miss".',
+      local: 'Teatro da Luz',
       icone: 'crown',
     },
     {
-      hora: '23:00',
-      titulo: 'Festa & DJ',
-      descricao: 'Pista aberta até ao fim! Música, brindes e muita animação.',
-      local: 'Pista de dança',
-      icone: 'sparkles',
+      hora: '20:00',
+      titulo: 'Jantar de Natal',
+      descricao: 'Jantar de Natal. Consulta a ementa no separador "Jantar".',
+      local: 'Teatro da Luz',
+      icone: 'dinner',
+    },
+    {
+      hora: '22:00',
+      titulo: 'DJ',
+      descricao: 'Pista aberta! Música e muita animação.',
+      local: 'Teatro da Luz',
+      icone: 'music',
+    },
+    {
+      hora: '00:30',
+      titulo: 'Ceia',
+      descricao: 'Ceia para recarregar energias e fechar a noite em grande.',
+      local: 'Teatro da Luz',
+      icone: 'moon',
     },
   ],
 
@@ -291,22 +310,15 @@ const EVENT_DATA = {
     ],
   },
 
-  // Locais — se o Team Building e o Jantar forem no mesmo sítio,
-  // deixa apenas um local na lista.
+  // Locais — se o Team Building e o Jantar forem em sítios diferentes,
+  // acrescenta outro local à lista. "estacionamento" é opcional.
   locais: [
     {
-      id: 'teambuilding',
-      tipo: 'Team Building',
-      nome: 'Quinta Exemplo (substituir)',
-      morada: 'Rua Exemplo, 123, 2780-000 Oeiras',
-      estacionamento: 'Parque gratuito junto à entrada principal (80 lugares). Segue as indicações "Evento Vermilion".',
-    },
-    {
-      id: 'jantar',
-      tipo: 'Jantar & Festa',
-      nome: 'Palácio Exemplo (substituir)',
-      morada: 'Avenida Exemplo, 45, 1200-000 Lisboa',
-      estacionamento: 'Parque público a 200 m (pago). Haverá transfer da Quinta às 17:45 e regresso às 02:00.',
+      id: 'evento',
+      tipo: 'Local do evento · Tudo no mesmo sítio',
+      nome: 'Teatro da Luz',
+      morada: 'Largo da Luz 2, 1600-458 Lisboa',
+      estacionamento: '',
     },
   ],
 
@@ -651,7 +663,13 @@ function Ornament({ label }) {
 
 const CHINESE_NUMERALS = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
 
-const AGENDA_ICONS = { gift: Gift, swords: Swords, clock: Clock, dinner: UtensilsCrossed, crown: Crown, sparkles: Sparkles };
+const AGENDA_ICONS = { gift: Gift, swords: Swords, clock: Clock, dinner: UtensilsCrossed, crown: Crown, sparkles: Sparkles, mic: Mic, coffee: Coffee, music: Music, moon: Moon };
+
+// Converte "HH:MM" em minutos; horas antes das 06:00 contam como depois da meia-noite da mesma festa
+const toEventMinutes = (hm) => {
+  const [h, m] = hm.split(':').map(Number);
+  return (h < 6 ? h + 24 : h) * 60 + m;
+};
 
 /* ---------------------------- 1. AGENDA ---------------------------- */
 function useNow(intervalMs = 30000) {
@@ -668,9 +686,12 @@ function AgendaView() {
   const { evento, agenda } = EVENT_DATA;
   const pad = (n) => String(n).padStart(2, '0');
   const todayISO = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-  const isEventDay = todayISO === evento.dataISO;
-  const nowHM = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-  const currentIdx = isEventDay ? agenda.reduce((acc, item, i) => (item.hora <= nowHM ? i : acc), -1) : -1;
+  // A festa continua depois da meia-noite: até às 06:00 do dia seguinte ainda conta como noite do evento
+  const yesterday = new Date(now.getTime() - 86400000);
+  const yISO = `${yesterday.getFullYear()}-${pad(yesterday.getMonth() + 1)}-${pad(yesterday.getDate())}`;
+  const isEventDay = (todayISO === evento.dataISO && now.getHours() >= 6) || (yISO === evento.dataISO && now.getHours() < 6);
+  const nowMin = toEventMinutes(`${pad(now.getHours())}:${pad(now.getMinutes())}`);
+  const currentIdx = isEventDay ? agenda.reduce((acc, item, i) => (toEventMinutes(item.hora) <= nowMin ? i : acc), -1) : -1;
 
   const eventDate = new Date(`${evento.dataISO}T00:00:00`);
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
