@@ -326,8 +326,6 @@ const EVENT_DATA = {
   contactos: [
     { papel: 'Coordenação do Evento', nome: 'Equipa de Marketing', telefone: '+351 916 861 147' },
     { papel: 'Coordenação do Evento', nome: 'Equipa de Marketing', telefone: '+351 968 666 533' },
-    { papel: 'Apoio Logístico', nome: 'Receção & Staff', telefone: '+351 910 000 002' },
-    { papel: 'Emergência / Transportes', nome: 'Transfer & Segurança', telefone: '+351 910 000 003' },
   ],
 
   // Dados fictícios usados APENAS no modo demo (sem Firebase)
