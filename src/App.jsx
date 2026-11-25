@@ -324,7 +324,8 @@ const EVENT_DATA = {
 
   // Contactos úteis — telefone em formato internacional (+351...)
   contactos: [
-    { papel: 'Coordenação do Evento', nome: 'Equipa de Marketing', telefone: '+351 910 000 001' },
+    { papel: 'Coordenação do Evento', nome: 'Equipa de Marketing', telefone: '+351 916 861 147' },
+    { papel: 'Coordenação do Evento', nome: 'Equipa de Marketing', telefone: '+351 968 666 533' },
     { papel: 'Apoio Logístico', nome: 'Receção & Staff', telefone: '+351 910 000 002' },
     { papel: 'Emergência / Transportes', nome: 'Transfer & Segurança', telefone: '+351 910 000 003' },
   ],
@@ -1218,7 +1219,7 @@ function InfoView() {
       <SectionTitle eyebrow="Precisas de ajuda?" title="Contactos úteis" />
       <div className="space-y-3">
         {EVENT_DATA.contactos.map((c) => (
-          <Card key={c.papel} className="flex items-center gap-3">
+          <Card key={`${c.papel}-${c.telefone}`} className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-bold uppercase tracking-wider text-gold">{c.papel}</p>
               <p className="font-semibold">{c.nome}</p>
