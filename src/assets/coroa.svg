@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 96" fill="#C9363A">
+  <!-- Coroa das cartas "1·5" (Figma: Festa de natal 15 anos) -->
+  <path d="M6 92 10 28 40 62 64 8 88 62 118 28 122 92Z"/>
+  <circle cx="10" cy="20" r="9"/>
+  <circle cx="64" cy="9" r="9"/>
+  <circle cx="118" cy="20" r="9"/>
+</svg>

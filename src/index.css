@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Identidade "Uma Noite em Macau" (Figma: Vermilion | utilities › Festa de natal 15 anos).
+   Cores e tipos de letra vêm do tailwind.config.js através de theme(): muda-se lá, muda aqui. */
+
 html, body, #root { min-height: 100%; }
 body {
   @apply bg-ink text-white font-sans antialiased;
@@ -12,11 +15,6 @@ body {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 
-/* Fundo festivo: vermelho com brilho ao centro (como o backdrop) */
-.festive-bg {
-  background:
-    radial-gradient(ellipse 90% 70% at 50% 35%, theme('colors.vermilion.DEFAULT') 0%, #962A2F 35%, theme('colors.vermilion.dark') 75%, theme('colors.ink.DEFAULT') 100%);
-}
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .animate-fade-up { animation: fadeUp .35s ease-out both; }
 @keyframes pop { 0% { transform: scale(.9); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
@@ -24,87 +22,96 @@ body {
 .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
 .pt-safe { padding-top: env(safe-area-inset-top); }
 
-/* ===== Tema "Uma Noite em Macau" (Figma: Festa de natal 15 anos) =====
-   As cores vêm do tailwind.config.js do main (theme()), para não haver dois sítios a mudar. */
-body { background: theme('colors.ink.DEFAULT'); }
+/* ---------- Fundo em gradiente radial ---------- */
+/* Fundo da app: vinho no topo a fundir no castanho-escuro */
 .app-shell {
   background:
-    radial-gradient(ellipse 110% 55% at 50% 0%, rgba(201,54,58,.55), transparent 75%),
-    linear-gradient(180deg, theme('colors.vermilion.dark') 0%, theme('colors.ink.DEFAULT') 60%);
+    radial-gradient(ellipse 120% 50% at 50% 0%, theme('colors.vermilion.dark'), transparent 75%),
+    theme('colors.ink.DEFAULT');
 }
-/* Padrão de treliça chinesa: retângulos entrelaçados, branco muito subtil */
-.fretwork {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-opacity='.1' stroke-width='1.5'%3E%3Crect x='4' y='4' width='20' height='20' rx='2'/%3E%3Crect x='32' y='32' width='20' height='20' rx='2'/%3E%3Cpath d='M24 14h8v28M0 42h4M52 14h4M14 24v8h28M14 52v4M42 0v4'/%3E%3C/g%3E%3C/svg%3E");
-}
+/* Topo da Agenda: o backdrop — vermelho Vermilion com brilho ao centro */
 .macau-hero {
-  background:
-    radial-gradient(ellipse 85% 70% at 50% 40%, theme('colors.vermilion.DEFAULT') 0%, #9A2A30 40%, theme('colors.vermilion.dark') 80%, theme('colors.ink.DEFAULT') 100%);
+  background: radial-gradient(ellipse 90% 75% at 50% 38%,
+    theme('colors.vermilion.DEFAULT') 0%,
+    theme('colors.vermilion.dark') 62%,
+    theme('colors.ink.DEFAULT') 100%);
 }
-/* Antes feltro verde: painel bordô com o mesmo brilho central */
+/* Pano da mesa: verde do mahjong */
 .felt {
-  background: radial-gradient(ellipse at 50% 35%, #8E2228 0%, theme('colors.vermilion.dark') 60%, theme('colors.ink.soft') 100%);
+  background: radial-gradient(ellipse at 50% 35%, #1A8A6B 0%, theme('colors.jade') 55%, #0B4A39 100%);
 }
-/* Os efeitos néon passam a títulos brancos, sem brilho, como no Figma */
-.neon-gold {
-  color: #FFFFFF;
-  letter-spacing: .08em;
-  text-shadow: 0 2px 10px rgba(46,30,30,.45);
-}
-.neon-red {
-  color: #FFFFFF;
-  letter-spacing: .08em;
-  text-shadow: 0 2px 10px rgba(46,30,30,.45);
-}
-@keyframes sway { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
-.lantern { transform-origin: top center; animation: sway 4.5s ease-in-out infinite; }
-.lantern svg { filter: drop-shadow(0 6px 10px rgba(46,30,30,.45)); }
-@keyframes flicker { 0%,100% { opacity: 1 } 47% { opacity: 1 } 48% { opacity: .65 } 50% { opacity: 1 } 76% { opacity: .85 } }
-.flicker { animation: flicker 5s linear infinite; }
-/* Divisor: linha branca a 60% (como no banner) */
-.gold-line { background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent); }
 
-/* ===== Novas classes, prontas a usar no App.jsx ===== */
-/* Moldura de filete duplo branco (45% fora, 25% dentro) */
+/* ---------- Padrão treliça (chinese fretwork), fio claro muito subtil ---------- */
+.fretwork {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23E2E7EA' stroke-opacity='.09' stroke-width='1.5'%3E%3Cpath d='M4 4h20v20H10V10h8v8'/%3E%3Cpath d='M52 52H32V32h14v14h-8v-8'/%3E%3Cpath d='M24 14h8M14 24v8M42 24v8M32 42h-8'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ---------- Moldura dupla (filete exterior + filete interior) ---------- */
 .frame-double {
   position: relative;
-  border: 1.5px solid rgba(255,255,255,.45);
+  border: 1.5px solid rgb(226 231 234 / .5);
 }
 .frame-double::after {
   content: '';
   position: absolute;
-  inset: 6px;
-  border: 1.5px solid rgba(255,255,255,.25);
+  inset: 5px;
+  border: 1px solid rgb(226 231 234 / .28);
+  border-radius: inherit;
   pointer-events: none;
 }
-/* Sobretítulo em Mitr, maiúsculas espaçadas ("FESTA DE NATAL 2026") */
+
+/* ---------- Coroas das cartas ---------- */
+/* Coroa vermelha centrada no topo e invertida no fundo, como nas cartas "1·5" */
+.card-crowns { position: relative; }
+.card-crowns::before,
+.card-crowns::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 26px;
+  height: 20px;
+  background: url('./assets/coroa.svg') center / contain no-repeat;
+  pointer-events: none;
+}
+.card-crowns::before { top: 10px; transform: translateX(-50%); }
+.card-crowns::after { bottom: 10px; transform: translateX(-50%) rotate(180deg); }
+/* Filete vermelho interior das cartas */
+.card-inner-line {
+  position: absolute;
+  inset: 6px;
+  border: 1.5px solid rgb(201 54 58 / .5);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+/* ---------- Tipografia ---------- */
 .eyebrow {
   font-family: theme('fontFamily.sans');
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: theme('letterSpacing.eyebrow');
-  color: theme('colors.mist');
 }
-/* Título em Tenor Sans ("UMA NOITE EM MACAU") */
 .title-macau {
   font-family: theme('fontFamily.display');
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: .1em;
+  letter-spacing: theme('letterSpacing.title');
   line-height: 1.08;
+}
+/* Título principal: branco com um brilho quente muito leve */
+.neon-gold {
   color: #FFFFFF;
+  text-shadow: 0 2px 14px rgb(46 30 30 / .55);
 }
-/* Carta de jogar branca com filete vermelho */
-.playing-card {
-  background: #FFFFFF;
-  color: theme('colors.vermilion.DEFAULT');
-  border-radius: 12px;
-  box-shadow: 0 6px 7px rgba(46,31,31,.55);
-  position: relative;
-}
-.playing-card::before {
-  content: '';
-  position: absolute;
-  inset: 6%;
-  border: 1px solid rgba(201,54,58,.6);
-  border-radius: 6px;
-  pointer-events: none;
-}
+.neon-red { color: #FFFFFF; }
+
+/* ---------- Baloiço das lanternas ---------- */
+@keyframes sway { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+.lantern { transform-origin: top center; animation: sway 4.5s ease-in-out infinite; }
+.lantern img { filter: drop-shadow(0 8px 12px rgb(46 30 30 / .5)); }
+@media (prefers-reduced-motion: reduce) { .lantern, .flicker { animation: none; } }
+@keyframes flicker { 0%,100% { opacity: 1 } 47% { opacity: 1 } 48% { opacity: .75 } 50% { opacity: 1 } }
+.flicker { animation: flicker 6s linear infinite; }
+
+/* Divisor: fio dourado pontual */
+.gold-line { background: linear-gradient(90deg, transparent, theme('colors.gold'), transparent); }

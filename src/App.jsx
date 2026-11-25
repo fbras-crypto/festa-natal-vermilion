@@ -71,6 +71,10 @@ import {
   WifiOff,
   X,
 } from 'lucide-react';
+// SVG exportados do Figma — ficam em src/assets/
+import lanternaSvg from './assets/lanterna.svg';
+import cartas15Svg from './assets/cartas-15.svg';
+import logoBrancoSvg from './assets/logo-vermilion-branco.svg';
 
 /* ----------------------------------------------------------------------------
  *  1) CONFIGURAÇÃO DO FIREBASE — cola aqui as chaves do teu projeto
@@ -177,7 +181,7 @@ const EVENT_DATA = {
   // "cor" em hexadecimal; "emblema" é o caráter chinês da mesa (aparece nas cartas e no pódio).
   // "membros" fica vazio até haver a lista final de jogadores de cada mesa.
   equipas: [
-    { id: 'dragao', nome: 'Dragão', emblema: '龍', cor: '#E34234', membros: [] },
+    { id: 'dragao', nome: 'Dragão', emblema: '龍', cor: '#C9363A', membros: [] },
     { id: 'tigre', nome: 'Tigre', emblema: '虎', cor: '#F59E0B', membros: [] },
     { id: 'fenix', nome: 'Fénix', emblema: '鳳', cor: '#F472B6', membros: [] },
     { id: 'carpa', nome: 'Carpa', emblema: '鯉', cor: '#60A5FA', membros: [] },
@@ -499,8 +503,8 @@ function SegmentedTabs({ tabs, value, onChange }) {
 function SectionTitle({ eyebrow, title, subtitle }) {
   return (
     <div className="mb-4 mt-2">
-      {eyebrow && <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">◆ {eyebrow}</p>}
-      <h2 className="font-display text-2xl font-bold text-white">{title}</h2>
+      {eyebrow && <p className="eyebrow text-[11px] text-gold">{eyebrow}</p>}
+      <h2 className="title-macau mt-1 text-2xl text-white">{title}</h2>
       {subtitle && <p className="mt-1 text-sm text-white/60">{subtitle}</p>}
     </div>
   );
@@ -514,7 +518,7 @@ function Card({ className, children, ...props }) {
   );
 }
 
-function Avatar({ name, foto, size = 'h-16 w-16', accent = '#E34234' }) {
+function Avatar({ name, foto, size = 'h-16 w-16', accent = '#C9363A' }) {
   const initials = name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
   if (foto) return <img src={foto} alt={name} className={cx(size, 'rounded-full object-cover ring-2 ring-white/10')} />;
   return (
@@ -541,56 +545,63 @@ function Toggle({ checked, onChange, disabled }) {
   );
 }
 
-/* ---------- Elementos decorativos "Casino Macau" (inspirados no moodboard) ---------- */
+/* ---------- Elementos decorativos "Uma Noite em Macau" (Figma: Festa de natal 15 anos) ---------- */
 
-// Lanterna chinesa vermelha com brilho e baloiço suave
+// Lanterna do Figma com baloiço suave; o caráter (福 喜 發) fica no centro, em dourado
 function Lantern({ size = 48, string = 16, delay = 0, char = '福' }) {
+  // A lanterna do Figma tem proporção 1:3 (300 × 900) e o fio já incluído
+  const h = size * 3;
   return (
-    <div className="lantern flex flex-col items-center" style={{ animationDelay: `${delay}s` }} aria-hidden="true">
-      <div className="w-px bg-gold/60" style={{ height: string }} />
-      <svg width={size} height={size * 1.3} viewBox="0 0 80 104">
-        <defs>
-          <radialGradient id="lanternGlow" cx="50%" cy="42%" r="62%">
-            <stop offset="0%" stopColor="#FFC08A" />
-            <stop offset="40%" stopColor="#F05A3C" />
-            <stop offset="100%" stopColor="#8F1C14" />
-          </radialGradient>
-        </defs>
-        <rect x="24" y="2" width="32" height="9" rx="2" fill="#F59E0B" />
-        <ellipse cx="40" cy="48" rx="35" ry="37" fill="url(#lanternGlow)" />
-        <path d="M40 11C18 20 18 76 40 85M40 11C62 20 62 76 40 85M40 11C30 22 30 74 40 85M40 11C50 22 50 74 40 85" stroke="#7A1712" strokeOpacity=".45" strokeWidth="1.4" fill="none" />
-        <rect x="24" y="83" width="32" height="8" rx="2" fill="#F59E0B" />
-        <path d="M36 91v12M40 91v13M44 91v12" stroke="#E34234" strokeWidth="2" />
-        <text x="40" y="57" textAnchor="middle" fontSize="24" fontWeight="700" fill="#FDE68A" fontFamily="serif">{char}</text>
-      </svg>
+    <div className="lantern relative flex flex-col items-center" style={{ animationDelay: `${delay}s`, marginTop: string - size * 1.2 }} aria-hidden="true">
+      <img src={lanternaSvg} alt="" width={size} height={h} draggable="false" />
+      {char && (
+        <span
+          className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 font-hanzi leading-none text-gold"
+          style={{ top: h * 0.6, fontSize: size * 0.42 }}
+        >
+          {char}
+        </span>
+      )}
     </div>
   );
 }
 
-// Ficha de casino (poker chip) — usada como ícone, logótipo e marcador
-function PokerChip({ size = 36, color = '#E34234', children, className }) {
+// Coroa das cartas "1·5" (topo e fundo invertido)
+function CardCrown({ size = 22, color = '#C9363A', flip = false, className }) {
+  return (
+    <svg width={size} height={size * 0.75} viewBox="0 0 128 96" fill={color} className={cx(flip && 'rotate-180', className)} aria-hidden="true">
+      <path d="M6 92 10 28 40 62 64 8 88 62 118 28 122 92Z" />
+      <circle cx="10" cy="20" r="9" />
+      <circle cx="64" cy="9" r="9" />
+      <circle cx="118" cy="20" r="9" />
+    </svg>
+  );
+}
+
+// Ficha de casino (poker chip) — vermelho Vermilion com riscas marfim; usada como ícone e marcador
+function PokerChip({ size = 36, color = '#C9363A', children, className }) {
   return (
     <span
       className={cx('relative inline-flex shrink-0 items-center justify-center rounded-full', className)}
       style={{
         width: size,
         height: size,
-        background: `repeating-conic-gradient(${color} 0deg 30deg, #F7F1E3 30deg 45deg)`,
-        boxShadow: '0 2px 8px rgba(0,0,0,.55)',
+        background: `repeating-conic-gradient(${color} 0deg 30deg, #F9F5EC 30deg 45deg)`,
+        boxShadow: '0 2px 8px rgba(30,20,20,.55)',
       }}
     >
-      <span className="absolute rounded-full" style={{ inset: Math.round(size * 0.15), background: color, border: '1.5px dashed rgba(247,241,227,.75)' }} />
+      <span className="absolute rounded-full" style={{ inset: Math.round(size * 0.15), background: color, border: '1.5px dashed rgba(249,245,236,.75)' }} />
       <span className="relative flex items-center justify-center text-white">{children}</span>
     </span>
   );
 }
 
-// Peça de mahjong em marfim
-function MahjongTile({ char = '發', color = '#15803D', className }) {
+// Peça de mahjong em marfim, com caráter em Ma Shan Zheng e friso verde
+function MahjongTile({ char = '發', color = '#116B52', className }) {
   return (
     <span
-      className={cx('inline-flex h-10 w-8 shrink-0 items-center justify-center rounded-md bg-ivory font-serif text-xl font-bold', className)}
-      style={{ color, boxShadow: '0 3px 0 #C9BFA5, 0 5px 10px rgba(0,0,0,.45)' }}
+      className={cx('inline-flex h-10 w-8 shrink-0 items-center justify-center rounded-md bg-ivory font-hanzi text-2xl leading-none', className)}
+      style={{ color, boxShadow: 'inset 0 -3px 0 #116B52, 0 3px 0 #D1C9B8, 0 5px 10px rgba(30,20,20,.45)' }}
     >
       {char}
     </span>
@@ -605,26 +616,29 @@ function ChipStack({ count, color }) {
         <div
           key={i}
           className="-mt-2 h-5 w-14 rounded-[50%] border-2 border-dashed first:mt-0"
-          style={{ backgroundColor: color, borderColor: '#F7F1E3', boxShadow: '0 3px 0 rgba(0,0,0,.45)' }}
+          style={{ backgroundColor: color, borderColor: '#F9F5EC', boxShadow: '0 3px 0 rgba(30,20,20,.45)' }}
         />
       ))}
     </div>
   );
 }
 
-// Carta de jogar em marfim, com índice nos cantos
-function PlayingCard({ rank, suit, suitColor = '#E34234', className, children }) {
+// Carta de jogar como no Figma: branca, filete vermelho interior, coroas no topo e no fundo
+function PlayingCard({ rank, suit, suitColor = '#C9363A', className, children }) {
   const Index = ({ flip }) => (
     <div
-      className={cx('pointer-events-none absolute flex flex-col items-center font-display font-bold leading-none', flip ? 'bottom-2 right-2.5 rotate-180' : 'left-2.5 top-2')}
+      className={cx('pointer-events-none absolute flex flex-col items-center font-display leading-none', flip ? 'bottom-3 right-3 rotate-180' : 'left-3 top-3')}
       style={{ color: suitColor }}
     >
-      <span className="text-base">{rank}</span>
-      <span className="text-sm">{suit}</span>
+      <span className={cx('text-base', /[㐀-鿿]/.test(String(rank)) && 'font-hanzi')}>{rank}</span>
+      {suit && <span className="text-sm">{suit}</span>}
     </div>
   );
   return (
-    <div className={cx('relative rounded-2xl bg-ivory p-4 text-ink ring-1 ring-black/10', className)} style={{ boxShadow: '0 10px 28px rgba(0,0,0,.5)' }}>
+    <div className={cx('relative rounded-2xl bg-ivory-light p-4 text-ink', className)} style={{ boxShadow: '0 0 0 2px #AEAEAE, 0 10px 24px rgba(30,20,20,.5)' }}>
+      <span className="card-inner-line" />
+      <CardCrown className="pointer-events-none absolute left-1/2 top-2.5 -translate-x-1/2" size={18} />
+      <CardCrown className="pointer-events-none absolute bottom-2.5 left-1/2 -translate-x-1/2" size={18} flip />
       <Index />
       <Index flip />
       {children}
@@ -632,14 +646,14 @@ function PlayingCard({ rank, suit, suitColor = '#E34234', className, children })
   );
 }
 
-// Divisor ornamental dourado
+// Divisor ornamental (fio dourado pontual)
 function Ornament({ label }) {
   return (
     <div className="my-1 flex items-center gap-3">
       <div className="gold-line h-px flex-1" />
-      <span className="text-xs text-gold">◆</span>
-      {label && <span className="font-display text-lg font-bold text-gold">{label}</span>}
-      {label && <span className="text-xs text-gold">◆</span>}
+      <CardCrown size={14} color="#D9982B" />
+      {label && <span className="title-macau text-lg text-white">{label}</span>}
+      {label && <CardCrown size={14} color="#D9982B" />}
       <div className="gold-line h-px flex-1" />
     </div>
   );
@@ -687,30 +701,27 @@ function AgendaView() {
         <div className="fretwork pointer-events-none absolute inset-0" />
         {/* Lanternas suspensas */}
         <div className="pointer-events-none relative flex items-start justify-between px-1">
-          <Lantern size={46} string={6} delay={0} />
-          <Lantern size={66} string={30} delay={0.7} char="喜" />
-          <Lantern size={38} string={2} delay={1.3} />
-          <Lantern size={56} string={18} delay={0.4} char="發" />
+          <Lantern size={40} string={4} delay={0} />
+          <Lantern size={56} string={26} delay={0.7} char="喜" />
+          <Lantern size={34} string={0} delay={1.3} char="" />
+          <Lantern size={48} string={14} delay={0.4} char="發" />
         </div>
 
-        <div className="relative -mt-2">
-          <div className="flex items-center gap-2">
-            <MahjongTile char="發" />
-            <MahjongTile char="中" color="#C2321F" />
-            <p className="ml-1 text-[11px] font-bold uppercase tracking-[0.25em] text-gold-light">{evento.tema}</p>
-          </div>
-          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.25em] text-white/70">{evento.empresa} apresenta</p>
-          <h1 className="mt-1 font-display text-4xl font-extrabold leading-tight">
-            Bem-vindos à<br />
-            <span className="neon-gold flicker">{evento.nome}</span>
+        <div className="frame-double relative mt-2 rounded-2xl px-5 pb-5 pt-4 text-center">
+          <img src={cartas15Svg} alt="Cartas 1 e 5 — 15 anos Vermilion" className="mx-auto -mt-1 w-44" draggable="false" />
+          <p className="eyebrow mt-1 text-[11px] text-mist">{evento.empresa} apresenta</p>
+          <h1 className="title-macau mt-2 text-[34px]">
+            <span className="block text-lg text-mist">Bem-vindos à</span>
+            <span className="neon-gold">{evento.nome}</span>
           </h1>
-          <p className="mt-2 text-2xl tracking-[0.4em]">
-            <span className="text-ivory">♠</span> <span className="text-vermilion-light">♥</span>{' '}
-            <span className="text-vermilion-light">♦</span> <span className="text-ivory">♣</span>
-          </p>
-          <p className="mt-2 max-w-sm text-sm text-white/85">{evento.mensagemBoasVindas}</p>
+          <div className="mt-3 flex items-center justify-center gap-2">
+            <MahjongTile char="發" />
+            <p className="eyebrow text-[10px] text-gold">{evento.tema}</p>
+            <MahjongTile char="中" color="#C9363A" />
+          </div>
+          <p className="mx-auto mt-3 max-w-sm text-sm text-white/85">{evento.mensagemBoasVindas}</p>
         </div>
-        <div className="relative mt-4 flex flex-wrap gap-2">
+        <div className="relative mt-4 flex flex-wrap justify-center gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-black/25 px-3 py-1.5 text-xs font-medium ring-1 ring-white/15">
             <CalendarDays size={14} /> {evento.dataTexto}
           </span>
@@ -734,19 +745,19 @@ function AgendaView() {
           return (
             <li key={i} className="relative mb-5 pl-7">
               <span className={cx('absolute -left-[19px] top-1 rounded-full ring-4 ring-ink', past && 'opacity-50 grayscale')}>
-                <PokerChip size={34} color={active ? '#D97706' : '#C2321F'}>
+                <PokerChip size={34} color={active ? '#D9982B' : '#C9363A'}>
                   <Icon size={13} />
                 </PokerChip>
               </span>
               <Card className={cx(active && 'ring-2 ring-gold', past && 'opacity-60')}>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-display text-xl font-bold text-gold">{item.hora}</span>
+                  <span className="font-display text-xl text-gold">{item.hora}</span>
                   {active && <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[11px] font-bold uppercase text-gold">A decorrer</span>}
                 </div>
                 <h3 className="mt-1 text-base font-bold">{item.titulo}</h3>
                 <p className="mt-1 text-sm text-white/65">{item.descricao}</p>
                 <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-white/50">
-                  <MapPin size={13} className="text-vermilion-light" /> {item.local}
+                  <MapPin size={13} className="text-vermilion" /> {item.local}
                 </p>
               </Card>
             </li>
@@ -758,7 +769,7 @@ function AgendaView() {
 }
 
 /* ------------------------- 2. TEAM BUILDING ------------------------- */
-const MEDAL_COLORS = ['#F59E0B', '#CBD5E1', '#D97706'];
+const MEDAL_COLORS = ['#F59E0B', '#CBD5E1', '#D9982B'];
 
 function rankTeams(teams) {
   return EVENT_DATA.equipas
@@ -784,7 +795,7 @@ function Leaderboard({ teams }) {
 
       {/* Pódio — mesa de feltro com pilhas de fichas */}
       <div className="felt mb-6 rounded-3xl p-4 pb-0 ring-2 ring-gold/40" style={{ boxShadow: 'inset 0 0 40px rgba(0,0,0,.5)' }}>
-        <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-[0.3em] text-gold-light/80">♠ Mesa VIP ♥</p>
+        <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-[0.3em] text-mist/80">♠ Mesa VIP ♥</p>
         <div className="flex items-end justify-center gap-3">
           {podium.map((t) => {
             const pos = ranked.indexOf(t);
@@ -792,15 +803,15 @@ function Leaderboard({ teams }) {
               <div key={t.id} className="flex w-1/3 flex-col items-center">
                 {pos === 0 && <Crown className="mb-1 text-gold drop-shadow-[0_0_8px_rgba(245,158,11,.8)]" size={22} />}
                 <div
-                  className="mb-1 flex h-11 w-11 items-center justify-center rounded-full bg-ivory text-2xl font-bold ring-2"
+                  className="mb-1 flex h-11 w-11 items-center justify-center rounded-full bg-ivory font-hanzi text-2xl ring-2"
                   style={{ color: t.cor, '--tw-ring-color': MEDAL_COLORS[pos] }}
                 >
                   {t.emblema}
                 </div>
                 <p className="line-clamp-1 text-center text-xs font-semibold">{t.nome}</p>
-                <p className="text-sm font-bold text-gold-light">{t.score} pts</p>
+                <p className="text-sm font-bold text-mist">{t.score} pts</p>
                 <ChipStack count={stackSizes[pos]} color={t.cor} />
-                <div className="mt-2 w-full rounded-t-xl py-1 text-center font-display text-xl font-extrabold text-ink" style={{ backgroundColor: MEDAL_COLORS[pos] }}>
+                <div className="mt-2 w-full rounded-t-xl py-1 text-center font-display text-xl text-ink" style={{ backgroundColor: MEDAL_COLORS[pos] }}>
                   {pos + 1}.º
                 </div>
               </div>
@@ -817,7 +828,7 @@ function Leaderboard({ teams }) {
               {i < 3 ? <Medal size={22} style={{ color: MEDAL_COLORS[i] }} /> : <span className="font-bold text-white/40">{i + 1}.º</span>}
             </div>
             <div
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg font-bold"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl font-hanzi text-xl"
               style={{ backgroundColor: `${t.cor}22`, color: t.cor }}
             >
               {t.emblema}
@@ -870,8 +881,8 @@ function TeamBuildingView({ teams }) {
                 suitColor={t.cor}
                 className={cx('flex flex-col items-center py-6 text-center', i === EVENT_DATA.equipas.length - 1 && EVENT_DATA.equipas.length % 2 === 1 && 'col-span-2')}
               >
-                <span className="font-serif text-5xl font-bold" style={{ color: t.cor }}>{t.emblema}</span>
-                <h3 className="mt-2 font-display text-xl font-bold text-ink">{t.nome}</h3>
+                <span className="font-hanzi text-5xl leading-none" style={{ color: t.cor }}>{t.emblema}</span>
+                <h3 className="mt-2 font-display text-xl text-ink">{t.nome}</h3>
                 {t.membros?.length > 0 ? (
                   <p className="mt-1 text-[11px] text-ink/60">{t.membros.join(' · ')}</p>
                 ) : (
@@ -888,17 +899,17 @@ function TeamBuildingView({ teams }) {
             <div className="grid grid-cols-4 gap-2">
               {stats.map((st) => (
                 <div key={st.label} className="rounded-2xl bg-ink-soft py-3 text-center ring-1 ring-gold/20">
-                  <p className="font-display text-2xl font-bold text-gold">{st.valor}</p>
+                  <p className="font-display text-2xl text-gold">{st.valor}</p>
                   <p className="text-[10px] uppercase tracking-wide text-white/50">{st.label}</p>
                 </div>
               ))}
             </div>
             <div className="felt rounded-2xl p-3 ring-1 ring-gold/30">
-              <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-[0.2em] text-gold-light">Fichas por ronda</p>
+              <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-[0.2em] text-mist">Fichas por ronda</p>
               <div className="flex justify-between">
                 {tb.pontos.map((p, i) => (
                   <div key={i} className="flex flex-col items-center">
-                    <PokerChip size={38} color={['#D97706', '#94A3B8', '#B45309', '#C2321F', '#7A1712'][i]}>
+                    <PokerChip size={38} color={['#D9982B', '#94A3B8', '#B45309', '#C9363A', '#631B1D'][i]}>
                       <span className="text-xs font-bold">{p}</span>
                     </PokerChip>
                     <span className="mt-1 text-[11px] font-semibold text-white/70">{i + 1}.º</span>
@@ -916,7 +927,7 @@ function TeamBuildingView({ teams }) {
                   <span className="mt-1 text-[10px] font-bold uppercase text-gold">Ronda {i + 1}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-display text-lg font-bold leading-tight">{p.nome}</h3>
+                  <h3 className="font-display text-lg leading-tight">{p.nome}</h3>
                   <p className="mt-1 text-sm text-white/75">{p.missao}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {p.dicas.map((d) => (
@@ -952,7 +963,7 @@ function JantarView() {
             <Card className="divide-y divide-white/5 p-0 ring-gold/20">
               {cat.itens.map((item) => (
                 <div key={item.nome} className="p-4">
-                  {item.opcao && <p className="mb-0.5 text-[11px] font-bold uppercase tracking-wider text-vermilion-light">{item.opcao}</p>}
+                  {item.opcao && <p className="mb-0.5 text-[11px] font-bold uppercase tracking-wider text-vermilion">{item.opcao}</p>}
                   <p className="font-semibold">{item.nome}</p>
                   {item.descricao && <p className="mt-0.5 text-sm text-white/60">{item.descricao}</p>}
                   {item.etiquetas?.length > 0 && (
@@ -979,13 +990,13 @@ function JantarView() {
 function CandidateGrid({ title, list, accent, rank, suit }) {
   return (
     <section className="mb-6">
-      <h3 className="mb-3 flex items-center gap-2 font-display text-lg font-bold">
+      <h3 className="mb-3 flex items-center gap-2 font-display text-lg">
         <Crown size={18} className="text-gold" /> {title}
       </h3>
       <div className="grid grid-cols-2 gap-3">
         {list.map((c) => (
           <PlayingCard key={c.id} rank={rank} suit={suit} suitColor={accent} className="flex flex-col items-center px-5 pb-9 pt-6 text-center">
-            <div className="rounded-full p-1" style={{ background: 'linear-gradient(135deg,#F59E0B,#B7791F)' }}>
+            <div className="rounded-full p-1" style={{ background: 'linear-gradient(135deg,#D9982B,#9C6A18)' }}>
               <Avatar name={c.nome} foto={c.foto} accent={accent} />
             </div>
             <p className="mt-3 text-sm font-bold leading-tight text-ink">{c.nome}</p>
@@ -1068,7 +1079,7 @@ function VotingPanel({ settings, ready, notify }) {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
           <ShieldCheck size={28} />
         </div>
-        <h3 className="mt-3 font-display text-xl font-bold">O teu voto já foi registado</h3>
+        <h3 className="mt-3 font-display text-xl">O teu voto já foi registado</h3>
         <p className="mt-1 text-sm text-white/60">Cada telemóvel só pode votar uma vez.</p>
         <div className="mt-4 grid grid-cols-2 gap-2 text-left">
           <div className="rounded-xl bg-white/5 p-3">
@@ -1090,7 +1101,7 @@ function VotingPanel({ settings, ready, notify }) {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gold/15 text-gold">
           <Lock size={26} />
         </div>
-        <h3 className="mt-3 font-display text-xl font-bold">Votações fechadas</h3>
+        <h3 className="mt-3 font-display text-xl">Votações fechadas</h3>
         <p className="mx-auto mt-1 max-w-xs text-sm text-white/60">
           A votação abre durante a Gala. Fica atento ao palco — esta página atualiza-se sozinha.
         </p>
@@ -1100,10 +1111,10 @@ function VotingPanel({ settings, ready, notify }) {
 
   return (
     <div className="animate-fade-up pb-24">
-      <p className="mb-4 rounded-xl bg-gold/10 px-3 py-2 text-sm text-gold-light ring-1 ring-gold/20">
+      <p className="mb-4 rounded-xl bg-gold/10 px-3 py-2 text-sm text-mist ring-1 ring-gold/20">
         Escolhe <strong>1 Mister</strong> e <strong>1 Miss</strong>. Só podes votar uma vez.
       </p>
-      <VotePicker title="Mister Vermilion" list={EVENT_DATA.candidatos.mister} selected={mister} onSelect={setMister} accent="#E34234" />
+      <VotePicker title="Mister Vermilion" list={EVENT_DATA.candidatos.mister} selected={mister} onSelect={setMister} accent="#C9363A" />
       <VotePicker title="Miss Vermilion" list={EVENT_DATA.candidatos.miss} selected={miss} onSelect={setMiss} accent="#F59E0B" />
       <div className="fixed inset-x-0 bottom-[72px] z-30 mx-auto max-w-md px-4 pb-safe">
         <button
@@ -1125,7 +1136,7 @@ function ResultsBars({ title, list, votes, accent }) {
   return (
     <Card className="mb-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-lg font-bold">{title}</h3>
+        <h3 className="font-display text-lg">{title}</h3>
         <span className="text-xs text-white/50">{total} votos</span>
       </div>
       <div className="space-y-3">
@@ -1174,22 +1185,22 @@ function MisterMissView({ votes, settings, ready, notify }) {
         {tab === 'participantes' && (
           <div className="animate-fade-up">
             <CandidateGrid title="Candidatos a Mister Vermilion" list={EVENT_DATA.candidatos.mister} accent="#1F2937" rank="K" suit="♠" />
-            <CandidateGrid title="Candidatas a Miss Vermilion" list={EVENT_DATA.candidatos.miss} accent="#E34234" rank="Q" suit="♥" />
+            <CandidateGrid title="Candidatas a Miss Vermilion" list={EVENT_DATA.candidatos.miss} accent="#C9363A" rank="Q" suit="♥" />
           </div>
         )}
         {tab === 'votar' && <VotingPanel settings={settings} ready={ready} notify={notify} />}
         {tab === 'resultados' &&
           (settings.showResults ? (
             <div className="animate-fade-up">
-              <ResultsBars title="Mister Vermilion" list={EVENT_DATA.candidatos.mister} votes={votes} accent="#E34234" />
+              <ResultsBars title="Mister Vermilion" list={EVENT_DATA.candidatos.mister} votes={votes} accent="#C9363A" />
               <ResultsBars title="Miss Vermilion" list={EVENT_DATA.candidatos.miss} votes={votes} accent="#F59E0B" />
             </div>
           ) : (
             <Card className="animate-pop mt-2 overflow-hidden py-10 text-center">
-              <div className="mx-auto flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-vermilion/15 text-vermilion-light">
+              <div className="mx-auto flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-vermilion/15 text-vermilion">
                 <EyeOff size={28} />
               </div>
-              <h3 className="mt-4 font-display text-xl font-bold">Votação a decorrer</h3>
+              <h3 className="mt-4 font-display text-xl">Votação a decorrer</h3>
               <p className="mt-1 text-sm text-white/60">Resultados revelados em breve! 🥁</p>
             </Card>
           ))}
@@ -1379,7 +1390,7 @@ function GalleryView({ photos, notify }) {
       {visible.length === 0 ? (
         <Card className="py-10 text-center">
           <Camera size={34} className="mx-auto text-gold" />
-          <h3 className="mt-3 font-display text-xl font-bold">Ainda não há fotos</h3>
+          <h3 className="mt-3 font-display text-xl">Ainda não há fotos</h3>
           <p className="mt-1 text-sm text-white/60">Sê o primeiro a partilhar um momento da noite!</p>
         </Card>
       ) : (
@@ -1411,8 +1422,8 @@ function InfoView() {
           const q = encodeURIComponent(`${l.nome}, ${l.morada}`);
           return (
             <Card key={l.id}>
-              <span className="rounded-full bg-vermilion/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-vermilion-light">{l.tipo}</span>
-              <h3 className="mt-2 font-display text-lg font-bold">{l.nome}</h3>
+              <span className="rounded-full bg-vermilion/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-vermilion">{l.tipo}</span>
+              <h3 className="mt-2 font-display text-lg">{l.nome}</h3>
               <p className="mt-1 flex gap-1.5 text-sm text-white/70">
                 <MapPin size={16} className="mt-0.5 shrink-0 text-gold" /> {l.morada}
               </p>
@@ -1509,9 +1520,9 @@ function TeamPointsRow({ team, score, notify }) {
     <div className="rounded-xl bg-white/5 p-3">
       <div className="flex items-center justify-between">
         <p className="flex items-center gap-2 font-semibold">
-          <span style={{ color: team.cor }}>{team.emblema}</span> {team.nome}
+          <span className="font-hanzi" style={{ color: team.cor }}>{team.emblema}</span> {team.nome}
         </p>
-        <p className="font-display text-xl font-bold tabular-nums text-gold">{score}</p>
+        <p className="font-display text-xl tabular-nums text-gold">{score}</p>
       </div>
       {/* Botões rápidos: pontos pelo lugar na ronda (1.º a 5.º) e correção */}
       <div className="mt-2 grid grid-cols-3 gap-2">
@@ -1561,7 +1572,7 @@ function AdminPanel({ open, onClose, teams, votes, photos, settings, notify }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-ink/95 backdrop-blur-sm">
       <div className="pt-safe flex items-center justify-between border-b border-white/10 px-4 py-3">
-        <p className="flex items-center gap-2 font-display text-lg font-bold">
+        <p className="flex items-center gap-2 font-display text-lg">
           <ShieldCheck size={20} className="text-gold" /> Painel de Organização
         </p>
         <button onClick={onClose} aria-label="Fechar" className="rounded-full bg-white/10 p-2"><X size={18} /></button>
@@ -1585,7 +1596,7 @@ function AdminPanel({ open, onClose, teams, votes, photos, settings, notify }) {
         </form>
       ) : (
         <div className="no-scrollbar mx-auto w-full max-w-md flex-1 space-y-5 overflow-y-auto px-4 py-4 pb-16">
-          <div className={cx('flex items-center gap-2 rounded-xl px-3 py-2 text-sm', IS_LIVE ? 'bg-emerald-500/10 text-emerald-300' : 'bg-gold/10 text-gold-light')}>
+          <div className={cx('flex items-center gap-2 rounded-xl px-3 py-2 text-sm', IS_LIVE ? 'bg-emerald-500/10 text-emerald-300' : 'bg-gold/10 text-mist')}>
             {IS_LIVE ? <Wifi size={16} /> : <WifiOff size={16} />}
             {IS_LIVE ? 'Ligado ao Firestore — as alterações chegam a todos.' : 'Modo demo — alterações só neste dispositivo.'}
           </div>
@@ -1614,7 +1625,7 @@ function AdminPanel({ open, onClose, teams, votes, photos, settings, notify }) {
           {/* Votos reais (sempre visíveis para a organização) */}
           <section className="space-y-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-white/50">Votos em tempo real (só organização)</h3>
-            <ResultsBars title="Mister" list={EVENT_DATA.candidatos.mister} votes={votes} accent="#E34234" />
+            <ResultsBars title="Mister" list={EVENT_DATA.candidatos.mister} votes={votes} accent="#C9363A" />
             <ResultsBars title="Miss" list={EVENT_DATA.candidatos.miss} votes={votes} accent="#F59E0B" />
           </section>
 
@@ -1704,16 +1715,15 @@ export default function App() {
       <header className="pt-safe sticky top-0 z-40 border-b border-gold/20 bg-ink/90 backdrop-blur">
         <div className="flex h-[60px] items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <PokerChip size={34} color="#E34234"><span className="font-display text-sm font-extrabold">V</span></PokerChip>
             <div className="leading-tight">
-              <p className="text-sm font-bold">Vermilion Group</p>
-              <p className="text-[11px] text-gold-light/70">Festa de Natal · Macau Nights</p>
+              <img src={logoBrancoSvg} alt="Vermilion Group" className="h-[22px] w-auto" draggable="false" />
+              <p className="eyebrow mt-1 whitespace-nowrap text-[9px] text-mist/70">Festa de Natal 2026</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <span
               title={IS_LIVE ? 'Sincronizado em tempo real' : 'Modo demonstração (sem Firebase)'}
-              className={cx('flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold uppercase', IS_LIVE ? (error ? 'bg-red-500/15 text-red-300' : 'bg-emerald-500/15 text-emerald-300') : 'bg-gold/15 text-gold')}
+              className={cx('flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-1 text-[10px] font-bold uppercase', IS_LIVE ? (error ? 'bg-red-500/15 text-red-300' : 'bg-emerald-500/15 text-emerald-300') : 'bg-gold/15 text-gold')}
             >
               {IS_LIVE ? (error ? <WifiOff size={11} /> : <Wifi size={11} />) : null}
               {IS_LIVE ? (error ? 'Offline' : 'Ao vivo') : 'Demo'}
