@@ -139,7 +139,7 @@ const EVENT_DATA = {
     {
       hora: '17:00',
       titulo: 'Team Building',
-      descricao: 'Das 17:00 às 18:00 — abre o Casino Vermilion! Consulta as equipas e as provas no separador "Team Building".',
+      descricao: 'Das 17:00 às 18:00 — 5 mesas, 7 rondas no Casino Vermilion! Consulta as mesas e as rondas no separador "Team".',
       local: 'Teatro da Luz',
       icone: 'swords',
     },
@@ -173,92 +173,122 @@ const EVENT_DATA = {
     },
   ],
 
-  // Equipas do Team Building — "id" não deve ter espaços nem acentos.
-  // "cor" em hexadecimal; "emblema" pode ser um símbolo ou emoji.
+  // Mesas do Team Building — "id" não deve ter espaços nem acentos.
+  // "cor" em hexadecimal; "emblema" é o caráter chinês da mesa (aparece nas cartas e no pódio).
+  // "membros" fica vazio até haver a lista final de jogadores de cada mesa.
   equipas: [
-    {
-      id: 'copas',
-      carta: 'A', // letra no canto da carta
-      nome: 'Ases de Copas',
-      cor: '#E34234',
-      emblema: '♥',
-      grito: 'Coração na mesa, vitória na certa!',
-      membros: ['Ana Ribeiro', 'Tiago Lopes', 'Marta Sousa', 'Ricardo Neves', 'Inês Moura'],
-    },
-    {
-      id: 'espadas',
-      carta: 'K', // letra no canto da carta
-      nome: 'Reis de Espadas',
-      cor: '#60A5FA',
-      emblema: '♠',
-      grito: 'Cortamos a direito até ao topo!',
-      membros: ['João Pires', 'Sofia Martins', 'Bruno Costa', 'Catarina Dias', 'Hugo Alves'],
-    },
-    {
-      id: 'ouros',
-      carta: 'Q', // letra no canto da carta
-      nome: 'Damas de Ouros',
-      cor: '#F59E0B',
-      emblema: '♦',
-      grito: 'Brilhamos mais do que as luzes de Natal!',
-      membros: ['Beatriz Faria', 'Miguel Santos', 'Rita Gomes', 'Pedro Carvalho', 'Joana Pinto'],
-    },
-    {
-      id: 'paus',
-      carta: 'J', // letra no canto da carta
-      nome: 'Valetes de Paus',
-      cor: '#34D399',
-      emblema: '♣',
-      grito: 'Raízes fortes, jogadas certeiras!',
-      membros: ['Diogo Fernandes', 'Mariana Rocha', 'Nuno Teixeira', 'Carolina Reis', 'André Matos'],
-    },
-    {
-      id: 'jokers',
-      carta: 'JK', // letra no canto da carta
-      nome: 'Os Jokers',
-      cor: '#A78BFA',
-      emblema: '★',
-      grito: 'Quem ri por último… ganha o pote!',
-      membros: ['Leonor Correia', 'Gonçalo Vieira', 'Patrícia Mendes', 'Rui Barros', 'Sara Cunha'],
-    },
+    { id: 'dragao', nome: 'Dragão', emblema: '龍', cor: '#E34234', membros: [] },
+    { id: 'tigre', nome: 'Tigre', emblema: '虎', cor: '#F59E0B', membros: [] },
+    { id: 'fenix', nome: 'Fénix', emblema: '鳳', cor: '#F472B6', membros: [] },
+    { id: 'carpa', nome: 'Carpa', emblema: '鯉', cor: '#60A5FA', membros: [] },
+    { id: 'leao', nome: 'Leão', emblema: '獅', cor: '#34D399', membros: [] },
   ],
 
-  // Provas do Team Building
+  // Regras gerais do Team Building (aparecem no separador "Rondas")
+  teamBuilding: {
+    host: 'Filipa Brás',
+    preparacao: 'Filipa Magalhães',
+    regras: [
+      '5 mesas, com cerca de 40 jogadores no total (cerca de 8 por mesa). Todas as mesas jogam a mesma ronda ao mesmo tempo.',
+      'Mesas: Dragão, Tigre, Fénix, Carpa e Leão.',
+      '7 rondas de 5 minutos cada (cerca de 1 hora no total).',
+      'Sem esforço físico e sem telemóveis — ficam no cofre de telemóveis à entrada.',
+      'Regra da casa: toda a gente da mesa joga em todas as rondas.',
+    ],
+    pontos: [25, 20, 15, 10, 5], // pontos do 1.º ao 5.º lugar em cada ronda
+    regrasPontos: [
+      'Se uma mesa não fizer a tarefa dentro do tempo fica com 0 pontos.',
+      'Empates: as mesas empatadas recebem os pontos do lugar mais alto (por exemplo, duas mesas em 2.º recebem 20 cada) e a seguinte fica em 4.º.',
+      'Desempate final (se duas mesas acabarem com os mesmos pontos): pergunta rápida da host — ganha a primeira mesa a responder.',
+    ],
+  },
+
+  // Rondas do Team Building (5 minutos cada)
   provas: [
     {
-      nome: 'Roleta da Sorte',
-      horario: '15:40 – 16:10',
-      duracao: '30 min',
-      pontosMax: 100,
-      regras: 'Cada equipa gira a roleta e cumpre o desafio sorteado em 3 minutos. Desafio cumprido = pontos da casa.',
+      nome: 'O Cofre do Casino',
+      duracao: '5 min',
+      resumo: 'A mesa tem de descobrir o código de 4 dígitos de um cofre. Cada pessoa recebe uma pista que não pode mostrar, só ler em voz alta. Ninguém resolve sozinho.',
+      comoSeJoga: [
+        'Cada pessoa tem uma pista e lê-a em voz alta. As pistas não se mostram nem se passam.',
+        'Quando a mesa achar que tem o código, escreve-o no cartão de resposta e entrega à host.',
+        'Cada mesa tem 3 tentativas.',
+        'As pistas 1 a 6 chegam para resolver. As pistas 7 e 8 servem para confirmar e garantem que, numa mesa de 8, toda a gente tem uma pista. Se a mesa tiver menos de 8 pessoas, retira-se primeiro a 8 e depois a 7.',
+      ],
+      pontuacao: ['Pela ordem em que as mesas acertam. As mesas que não acertarem no tempo ficam empatadas em último.'],
     },
     {
-      nome: 'Blackjack Humano',
-      horario: '16:10 – 16:40',
-      duracao: '30 min',
-      pontosMax: 150,
-      regras: 'Os membros são as cartas! Formem a soma 21 com as cartas presas às costas sem "rebentar".',
+      nome: 'Blackjack de Contas',
+      duracao: '5 min',
+      resumo: 'A mesa recebe 10 cartas e faz o maior número de combinações diferentes que somem 21. Cada pessoa apresenta pelo menos uma.',
+      comoSeJoga: [
+        'Todas as mesas recebem a mesma mão de 10 cartas, para ser justo.',
+        'Valores: Ás vale 1 ou 11, figuras valem 10, as outras cartas valem o número.',
+        'Uma combinação é um conjunto de 2 ou mais cartas que soma 21. A mesma carta pode entrar em várias combinações, mas não se pode repetir a mesma combinação.',
+        'A mesa escreve as combinações na folha de resposta, com o nome de quem a encontrou ao lado. Cada pessoa tem de ter pelo menos uma.',
+      ],
+      pontuacao: [
+        'Ganha a mesa com mais combinações válidas.',
+        'Uma combinação errada anula uma certa.',
+        'Uma mesa onde alguém não apresentou nenhuma perde 2 combinações.',
+      ],
+    },
+    {
+      nome: 'Linha do Tempo Vermilion',
+      duracao: '5 min',
+      resumo: 'A mesa ordena 15 cartões com marcos dos 15 anos da Vermilion, e cada pessoa coloca um cartão à vez.',
+      comoSeJoga: [
+        'Os cartões estão baralhados e virados para baixo. À vez, cada pessoa tira um cartão e coloca-o na linha, no sítio onde acha que encaixa. A mesa pode discutir, mas é quem tirou o cartão que decide.',
+        'Quando todos os cartões estiverem na mesa, a mesa pode fazer uma única troca entre dois cartões.',
+        'No fim do tempo, a host ou a ajudante vira os cartões: o ano está no verso.',
+      ],
+      pontuacao: ['Ganha a mesa com mais cartões na posição certa. Em caso de empate, ganha a que terminou primeiro.'],
+    },
+    {
+      nome: 'Quanto Vale a Ficha?',
+      duracao: '5 min',
+      resumo: 'A mesa adivinha o preço de 5 objetos de luxo. Cada pessoa estima um objeto, e a mesa só pode corrigir uma resposta.',
+      comoSeJoga: [
+        'A mesa recebe 5 fotos, numeradas de 1 a 5. Cada pessoa fica com um objeto (numa mesa de 8, três objetos ficam com 2 pessoas, que decidem juntas).',
+        'Quem tem o objeto escreve o preço na folha de resposta. No fim, a mesa pode alterar uma única resposta.',
+      ],
+      pontuacao: ['Para cada objeto, calcula-se a diferença percentual em relação ao preço real. Ganha a mesa com a menor diferença média.'],
+    },
+    {
+      nome: 'Palavra Proibida',
+      duracao: '5 min',
+      resumo: 'Cada pessoa, à vez, faz a mesa adivinhar palavras de casino sem usar as palavras proibidas do cartão.',
+      comoSeJoga: [
+        'Cada pessoa tem cerca de 30 segundos. Tira cartões do monte e tenta fazer a mesa adivinhar o máximo de palavras.',
+        'Não pode dizer a palavra, as palavras proibidas, partes delas, nem fazer gestos ou sons. Pode passar um cartão.',
+        'Um elemento de outra mesa, ou a ajudante, controla as palavras proibidas.',
+      ],
+      pontuacao: ['Ganha a mesa com mais palavras adivinhadas. Cada palavra proibida dita anula uma certa.'],
+    },
+    {
+      nome: 'O Grande Assalto',
+      duracao: '5 min',
+      resumo: 'A mesa escreve em cadeia a história de um assalto a um casino de Macau. Cada pessoa acrescenta uma frase com uma palavra sorteada.',
+      comoSeJoga: [
+        'A folha já traz a primeira frase: "Eram onze da noite no Casino Dragão Dourado, em Macau, quando as luzes se apagaram de repente…"',
+        'Cada pessoa tira uma palavra do saco e, à vez, escreve uma frase que continua a história e que inclui essa palavra.',
+        'A última pessoa tem de fechar a história: o assalto resultou ou não?',
+      ],
+      pontuacao: [
+        'A host (ou um pequeno júri) lê as histórias durante a ronda seguinte e ordena-as segundo três critérios: todas as palavras usadas, a história faz sentido e tem graça.',
+        'A história vencedora é lida em voz alta no fim do team building ou ao jantar.',
+      ],
     },
     {
       nome: 'Poker Face',
-      horario: '16:40 – 17:00',
-      duracao: '20 min',
-      pontosMax: 100,
-      regras: 'Um elemento conta factos — verdadeiros ou falsos — sem se rir. A equipa adversária tenta adivinhar.',
-    },
-    {
-      nome: 'Corrida das Fichas',
-      horario: '17:00 – 17:20',
-      duracao: '20 min',
-      pontosMax: 150,
-      regras: 'Estafeta com fichas de casino numa colher. Fichas que caem voltam ao início.',
-    },
-    {
-      nome: 'Quiz Vermilion',
-      horario: '17:20 – 17:30',
-      duracao: '10 min',
-      pontosMax: 200,
-      regras: 'Perguntas rápidas sobre as marcas do grupo e o ano de 2026. Resposta errada não desconta.',
+      duracao: '5 min',
+      resumo: 'Uma mesa tenta fazer rir os jogadores de outra mesa enquanto estes têm água na boca.',
+      comoSeJoga: [
+        'Joga-se em roda: o Dragão tenta fazer rir o Tigre, o Tigre faz rir a Fénix, a Fénix faz rir a Carpa, a Carpa faz rir o Leão e o Leão faz rir o Dragão. Cada mesa ataca e defende ao mesmo tempo.',
+        'Quem defende tem um gole de água na boca e não pode engolir. Quem ataca pode fazer caretas, contar piadas e imitar, mas não pode tocar em ninguém.',
+        'Quem se rir ou deitar a água fora sai da ronda.',
+      ],
+      pontuacao: ['Ganha a mesa com mais pessoas que aguentaram até ao fim dos 4 minutos.'],
     },
   ],
 
@@ -348,7 +378,7 @@ const EVENT_DATA = {
 
   // Dados fictícios usados APENAS no modo demo (sem Firebase)
   demo: {
-    pontos: { copas: 420, espadas: 380, ouros: 465, paus: 290, jokers: 335 },
+    pontos: { dragao: 120, tigre: 105, fenix: 135, carpa: 90, leao: 110 },
     votos: { 'm-tiago': 12, 'm-bruno': 18, 'm-miguel': 9, 'm-diogo': 14, 'f-marta': 16, 'f-sofia': 11, 'f-rita': 20, 'f-leonor': 7 },
     definicoes: { votingOpen: true, showResults: true },
   },
@@ -896,40 +926,59 @@ function Leaderboard({ teams }) {
   );
 }
 
+function RuleList({ items, ordered = false }) {
+  return (
+    <ul className="mt-2 space-y-1.5">
+      {items.map((r, i) => (
+        <li key={i} className="flex gap-2 text-sm text-white/75">
+          <span className="mt-0.5 shrink-0 text-xs text-gold">{ordered ? `${i + 1}.` : '◆'}</span>
+          <span>{r}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function TeamBuildingView({ teams }) {
   const [tab, setTab] = useState('pontuacao');
+  const tb = EVENT_DATA.teamBuilding;
+  const lugares = ['1.º', '2.º', '3.º', '4.º', '5.º'];
   return (
     <div>
-      <SectionTitle eyebrow="Casino de Macau" title="Team Building" subtitle="Equipas, provas e classificação em tempo real." />
+      <SectionTitle eyebrow="Casino de Macau" title="Team Building" subtitle="5 mesas, 7 rondas de 5 minutos e classificação em tempo real." />
       <SegmentedTabs
         value={tab}
         onChange={setTab}
         tabs={[
-          { id: 'equipas', label: 'Equipas' },
-          { id: 'provas', label: 'Provas' },
+          { id: 'equipas', label: 'Mesas' },
+          { id: 'provas', label: 'Rondas' },
           { id: 'pontuacao', label: 'Pontuação' },
         ]}
       />
       <div className="mt-2">
         {tab === 'equipas' && (
-          <div className="animate-fade-up space-y-3">
+          <div className="animate-fade-up grid grid-cols-1 gap-3">
             {EVENT_DATA.equipas.map((t) => (
-              <PlayingCard key={t.id} rank={t.carta} suit={t.emblema} suitColor={t.cor} className="px-8 py-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl text-4xl font-bold" style={{ backgroundColor: `${t.cor}1f`, color: t.cor }}>
+              <PlayingCard key={t.id} rank={t.emblema} suit="" suitColor={t.cor} className="px-8 py-5">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl font-serif text-4xl font-bold" style={{ backgroundColor: `${t.cor}1f`, color: t.cor }}>
                     {t.emblema}
                   </div>
                   <div>
-                    <h3 className="font-display text-xl font-bold text-ink">{t.nome}</h3>
-                    <p className="text-xs text-ink/50">{t.membros.length} jogadores</p>
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-ink/50">Mesa</p>
+                    <h3 className="font-display text-2xl font-bold text-ink">{t.nome}</h3>
+                    <p className="text-xs text-ink/50">
+                      {t.membros?.length ? `${t.membros.length} jogadores` : 'Cerca de 8 jogadores'}
+                    </p>
                   </div>
                 </div>
-                <p className="mt-3 rounded-xl bg-ink/5 px-3 py-2 text-sm italic text-ink/80">“{t.grito}”</p>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {t.membros.map((m) => (
-                    <span key={m} className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-ink/80 ring-1 ring-ink/10">{m}</span>
-                  ))}
-                </div>
+                {t.membros?.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {t.membros.map((m) => (
+                      <span key={m} className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-ink/80 ring-1 ring-ink/10">{m}</span>
+                    ))}
+                  </div>
+                )}
               </PlayingCard>
             ))}
           </div>
@@ -937,20 +986,51 @@ function TeamBuildingView({ teams }) {
 
         {tab === 'provas' && (
           <div className="animate-fade-up space-y-3">
-            {EVENT_DATA.provas.map((p, i) => (
-              <Card key={p.nome}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <MahjongTile char={CHINESE_NUMERALS[i] || i + 1} color="#C2321F" />
-                    <h3 className="font-semibold">{p.nome}</h3>
+            {/* Regras gerais */}
+            <Card className="ring-gold/30">
+              <h3 className="font-display text-lg font-bold text-gold">Regras gerais</h3>
+              <RuleList items={tb.regras} />
+              <p className="mt-3 text-xs text-white/50">
+                Host: <strong className="text-white/80">{tb.host}</strong> · Preparação dos desafios: <strong className="text-white/80">{tb.preparacao}</strong>
+              </p>
+            </Card>
+
+            {/* Pontos por ronda */}
+            <Card>
+              <h3 className="font-display text-lg font-bold text-gold">Pontos por ronda</h3>
+              <div className="mt-3 grid grid-cols-5 gap-1.5">
+                {tb.pontos.map((p, i) => (
+                  <div key={i} className="flex flex-col items-center rounded-xl bg-white/5 py-2">
+                    <PokerChip size={30} color={['#D97706', '#94A3B8', '#B45309', '#C2321F', '#7A1712'][i]}>
+                      <span className="text-[10px] font-bold">{p}</span>
+                    </PokerChip>
+                    <span className="mt-1 text-[11px] font-semibold text-white/60">{lugares[i]}</span>
                   </div>
-                  <span className="shrink-0 rounded-full bg-gold/15 px-2.5 py-1 text-xs font-bold text-gold">até {p.pontosMax} pts</span>
-                </div>
-                <p className="mt-3 text-sm text-white/70">{p.regras}</p>
-                <div className="mt-3 flex gap-4 text-xs text-white/50">
-                  <span className="flex items-center gap-1"><Clock size={13} /> {p.horario}</span>
-                  <span>Duração: {p.duracao}</span>
-                </div>
+                ))}
+              </div>
+              <RuleList items={tb.regrasPontos} />
+            </Card>
+
+            {/* Rondas */}
+            {EVENT_DATA.provas.map((p, i) => (
+              <Card key={p.nome} className="p-0">
+                <details className="group">
+                  <summary className="flex cursor-pointer list-none items-start gap-3 p-4">
+                    <MahjongTile char={CHINESE_NUMERALS[i] || i + 1} color="#C2321F" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-gold">Ronda {i + 1} · {p.duracao}</p>
+                      <h3 className="font-semibold">{p.nome}</h3>
+                      <p className="mt-1 text-sm text-white/65">{p.resumo}</p>
+                    </div>
+                    <ChevronRight size={18} className="mt-1 shrink-0 text-white/40 transition group-open:rotate-90" />
+                  </summary>
+                  <div className="border-t border-white/5 px-4 pb-4 pt-3">
+                    <p className="text-xs font-bold uppercase tracking-wider text-white/50">Como se joga</p>
+                    <RuleList items={p.comoSeJoga} />
+                    <p className="mt-3 text-xs font-bold uppercase tracking-wider text-white/50">Pontuação</p>
+                    <RuleList items={p.pontuacao} />
+                  </div>
+                </details>
               </Card>
             ))}
           </div>
@@ -1523,7 +1603,7 @@ function TeamPointsRow({ team, score, notify }) {
   const act = async (fn, msg) => {
     try { await fn(); if (msg) notify(msg); } catch (e) { console.error(e); notify('Erro ao atualizar pontos.', 'error'); }
   };
-  const add = (d) => act(() => (score + d < 0 ? backend.setPoints(team.id, 0) : backend.addPoints(team.id, d)));
+  const add = (d, msg) => act(() => (score + d < 0 ? backend.setPoints(team.id, 0) : backend.addPoints(team.id, d)), msg);
   const setExact = () => {
     const n = parseInt(value, 10);
     if (Number.isNaN(n) || n < 0) return notify('Indica um número válido (≥ 0).', 'error');
@@ -1538,10 +1618,14 @@ function TeamPointsRow({ team, score, notify }) {
         </p>
         <p className="font-display text-xl font-bold tabular-nums text-gold">{score}</p>
       </div>
+      {/* Botões rápidos: pontos pelo lugar na ronda (1.º a 5.º) e correção */}
       <div className="mt-2 grid grid-cols-3 gap-2">
-        <button onClick={() => add(-10)} className="rounded-lg bg-white/10 py-2 text-sm font-bold active:scale-95">−10</button>
-        <button onClick={() => add(10)} className="rounded-lg bg-vermilion/80 py-2 text-sm font-bold active:scale-95">+10</button>
-        <button onClick={() => add(50)} className="rounded-lg bg-vermilion py-2 text-sm font-bold active:scale-95">+50</button>
+        {EVENT_DATA.teamBuilding.pontos.map((p, i) => (
+          <button key={i} onClick={() => add(p, `${team.nome}: +${p} (${i + 1}.º lugar)`)} className={cx('rounded-lg py-2 text-sm font-bold active:scale-95', i === 0 ? 'bg-vermilion' : 'bg-vermilion/70')}>
+            {i + 1}.º +{p}
+          </button>
+        ))}
+        <button onClick={() => add(-5, `${team.nome}: −5`)} className="rounded-lg bg-white/10 py-2 text-sm font-bold active:scale-95">−5</button>
       </div>
       <div className="mt-2 flex gap-2">
         <input
